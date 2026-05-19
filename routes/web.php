@@ -1,52 +1,25 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\Request;
 use App\Http\Controllers\ChatController;
+use App\Http\Controllers\AuthController; // Panggil AuthController yang baru dibuat
 
 // Otomatis arahkan ke chat
 Route::get('/', function () {
     return redirect()->route('chat');
 });
 
-// --- HALAMAN LOGIN SEMENTARA ---
-Route::get('/login', function () {
-    return '
-        <div style="text-align:center; margin-top:100px; font-family:sans-serif;">
-            <h2>Login Tester App Chat</h2>
-            <form action="/login" method="POST">
-                <input type="hidden" name="_token" value="'.csrf_token().'">
-                <div style="margin-bottom:10px;">
-                    <input type="email" name="email" value="budi@test.com" style="padding:8px;" placeholder="Email" required>
-                </div>
-                <div style="margin-bottom:10px;">
-                    <input type="password" name="password" value="password123" style="padding:8px;" placeholder="Password" required>
-                </div>
-                <button type="submit" style="padding:8px 20px; background-color:#10b981; color:white; border:none; border-radius:5px; cursor:pointer;">Login</button>
-            </form>
-            <p style="font-size:12px; color:gray;">Info: Coba login pakai <b>budi@test.com</b> atau <b>ani@test.com</b><br>Password: <b>password123</b></p>
-        </div>
-    ';
-})->name('login');
-
-Route::post('/login', function (Request $request) {
-    if (Auth::attempt($request->only('email', 'password'))) {
-        $request->session()->regenerate();
-        return redirect()->route('chat');
-    }
-    return "Login Gagal! Email atau password salah.";
+// --- ROUTES UNTUK AUTENTIKASI (Hanya bisa diakses kalau belum login) ---
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+    Route::post('/register', [AuthController::class, 'register']);
 });
 
-Route::post('/logout', function (Request $request) {
-    Auth::logout();
-    $request->session()->invalidate();
-    $request->session()->regenerateToken();
-    return redirect('/login');
-})->name('logout');
-// --------------------------------
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
-// Route Inti yang butuh Login (Tugas Chat-nya)
+// --- ROUTES INTI CHAT (Hanya bisa diakses kalau sudah login) ---
 Route::middleware(['auth'])->group(function () {
     
     // Tampilan UI

@@ -55,7 +55,7 @@
 
                         <div class="ml-3 flex-1 overflow-hidden">
                             <div class="font-medium text-[15px] truncate leading-tight" x-text="conv.name"></div>
-                            <div class="text-[11px] truncate mt-0.5 opacity-70" x-text="conv.last_message ? (conv.last_message.user_name + ': ' + conv.last_message.body) : 'No messages yet'"></div>
+                            <div class="text-[11px] truncate mt-0.5 opacity-70" x-text="conv.last_message ? conv.last_message.body : 'Belum ada pesan'"></div>
                         </div>
                     </div>
                 </template>
@@ -115,58 +115,46 @@
                         </div>
                     </div>
 
-                    <div id="message-container" class="flex-1 overflow-y-auto pt-4 pb-2 flex flex-col space-y-2">
+                    <div id="message-container" class="flex-1 overflow-y-auto pt-4 pb-2 px-4 flex flex-col space-y-1.5 bg-black">
                         <template x-for="msg in messages" :key="msg.id">
                             
-                            <div class="flex px-4 py-1" :class="msg.user_id == {{ auth()->id() }} ? 'justify-end' : 'justify-start'">
+                            <div class="flex w-full" :class="msg.user_id == {{ auth()->id() }} ? 'justify-end' : 'justify-start'">
                                 
-                                <div class="flex max-w-[80%]" :class="msg.user_id == {{ auth()->id() }} ? 'flex-row-reverse' : 'flex-row'">
+                                <div class="relative max-w-[85%] sm:max-w-[75%] px-3 pt-2 pb-1.5 rounded-2xl shadow-sm"
+                                     :class="msg.user_id == {{ auth()->id() }} ? 'bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white rounded-tr-sm' : 'bg-[#262626] text-white rounded-tl-sm'">
                                     
-                                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0 mt-1 cursor-pointer"
-                                         :class="msg.user_id == {{ auth()->id() }} ? 'bg-emerald-600 ml-3' : 'bg-[#5865F2] mr-3'"
-                                         x-text="msg.user_name.charAt(0)"></div>
+                                    <p class="whitespace-pre-wrap break-words leading-relaxed text-[15px] pr-12" x-text="msg.body"></p>
                                     
-                                    <div class="flex flex-col" :class="msg.user_id == {{ auth()->id() }} ? 'items-end' : 'items-start'">
-                                        
-                                        <div class="flex items-baseline gap-2 mb-1" :class="msg.user_id == {{ auth()->id() }} ? 'flex-row-reverse' : 'flex-row'">
-                                            <span class="font-medium text-[13px] cursor-pointer hover:underline" 
-                                                  :class="msg.user_id == {{ auth()->id() }} ? 'text-emerald-400' : 'text-gray-100'" 
-                                                  x-text="msg.user_name"></span>
-                                            <span class="text-[10px] text-gray-500" x-text="msg.created_at"></span>
-                                        </div>
-                                        
-                                        <div class="px-3 py-2 rounded-lg shadow-sm"
-                                             :class="msg.user_id == {{ auth()->id() }} ? 'bg-[#3b3d43] text-gray-100 rounded-tr-sm' : 'bg-[#2b2d31] text-[#dbdee1] rounded-tl-sm'">
-                                            <p class="whitespace-pre-wrap break-words leading-relaxed text-[15px]" x-text="msg.body"></p>
-                                        </div>
-                                    </div>
+                                    <span class="absolute bottom-1 right-3 text-[10px]" 
+                                          :class="msg.user_id == {{ auth()->id() }} ? 'text-white/80' : 'text-gray-400'" 
+                                          x-text="msg.created_at"></span>
                                 </div>
 
                             </div>
                         </template>
                     </div>
 
-                    <div class="px-4 pb-6 shrink-0">
+                    <div class="px-4 pb-4 pt-2 shrink-0 bg-black">
                         
                         <div class="h-5 flex items-center px-1 mb-1">
-                            <p x-show="typingUser" style="display: none;" class="text-[12px] font-bold text-gray-400" x-text="typingUser + ' is typing...'"></p>
+                            <p x-show="typingUser" style="display: none;" class="text-[12.5px] font-medium text-violet-500 italic" x-text="typingUser + ' sedang mengetik...'"></p>
                         </div>
 
-                        <form @submit.prevent="sendMessage()" class="bg-[#383a40] rounded-lg flex items-center px-4 py-2.5">
-                            <button type="button" class="text-gray-400 hover:text-gray-200 p-1 mr-2 transition">
-                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"></path></svg>
+                        <form @submit.prevent="sendMessage()" class="bg-[#262626] rounded-full flex items-center px-2 py-1.5">
+                            
+                            <button type="button" class="bg-violet-600 text-white p-1.5 rounded-full hover:bg-violet-700 transition ml-1 mr-2 flex items-center justify-center shadow-md">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
                             </button>
                             
                             <input type="text" x-model="newMessage" @input="notifyTyping()" 
-                                   :placeholder="'Message ' + (activeConversation.type === 'group' ? '#' : '@') + activeConversation.name" 
-                                   class="flex-1 bg-transparent border-none px-2 text-gray-200 text-[15px] focus:outline-none placeholder-gray-500">
+                                   placeholder="kirim pesan..." 
+                                   class="flex-1 bg-transparent border-none px-2 text-white text-[15px] focus:outline-none placeholder-gray-500">
                             
-                            <button type="submit" x-show="newMessage.trim().length > 0" class="text-indigo-400 font-semibold px-2 text-sm hover:text-indigo-300 transition">
-                                Send
+                            <button type="submit" x-show="newMessage.trim().length > 0" class="text-violet-500 font-bold px-4 text-sm hover:text-violet-400 transition">
+                                Kirim
                             </button>
                         </form>
                     </div>
-                </div>
             </template>
 
             <template x-if="!activeConversation">
